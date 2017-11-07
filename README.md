@@ -9,6 +9,8 @@ Android file explorer with clean architecture
 4. Project lombok
 5. Butterknife
 6. Light-Weight-Stream
+7. Storage
+8. RxPermission
 ```
 
 ### Focus
