@@ -25,7 +25,5 @@ MVP vs MVVM vs Flux
 Mobx(Reference 참조) 를 본딴 간단한 상태관리 스토어를 만들고 이를 이용하여 프로젝트를 구성함.  
 
 ### Reference
-```
 1. Mobx : https://mobx.js.org/intro/concepts.html
 2. Convention : https://github.com/ribot/android-guidelines/blob/master/project_and_code_guidelines.md
-```
