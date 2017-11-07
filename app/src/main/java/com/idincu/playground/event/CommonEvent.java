@@ -1,12 +1,14 @@
 package com.idincu.playground.event;
 
+import java.io.Serializable;
+
 import lombok.Getter;
 
 /**
  * Created by grace on 2017-11-07.
  */
 
-public class CommonEvent {
+public class CommonEvent implements Serializable {
   public static final String EVENT_REPLACE_LIST = "EVENT_REPLACE_LIST";
   public static final String EVENT_ADD_ITEM = "EVENT_ADD_ITEM";
 
