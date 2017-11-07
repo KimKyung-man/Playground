@@ -13,6 +13,7 @@ public class PlaygroundActivity extends AppCompatActivity {
 
   @Override public void setContentView(@LayoutRes int layoutResID) {
     super.setContentView(layoutResID);
+    this.application = PlaygroundApplication.getContext();
     ButterKnife.bind(this);
   }
 }

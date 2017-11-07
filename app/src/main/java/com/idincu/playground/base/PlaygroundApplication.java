@@ -5,8 +5,6 @@ import android.app.Application;
 import com.idincu.playground.event.CommonEvent;
 import com.idincu.playground.store.FilesStore;
 
-import java.util.ArrayList;
-
 import io.reactivex.subjects.PublishSubject;
 
 /**
@@ -22,19 +20,19 @@ public class PlaygroundApplication extends Application {
   @Override public void onCreate() {
     super.onCreate();
     PlaygroundApplication.context = this;
-    PlaygroundApplication.filesStore = new FilesStore(new ArrayList<>(), new ArrayList<>());
+    PlaygroundApplication.filesStore = new FilesStore();
     PlaygroundApplication.eventBus = PublishSubject.create();
   }
 
-  public PlaygroundApplication getContext() {
-    return context == null ? context = PlaygroundApplication.this : context;
+  public static PlaygroundApplication getContext() {
+    return context;
   }
 
   public FilesStore getFilesStore() {
-    return filesStore == null ? filesStore = new FilesStore(new ArrayList<>(), new ArrayList<>()) : filesStore;
+    return filesStore == null ? filesStore = new FilesStore() : filesStore;
   }
 
-  public static PublishSubject<CommonEvent> getEventBus() {
+  public PublishSubject<CommonEvent> getEventBus() {
     return eventBus == null ? eventBus = PublishSubject.create() : eventBus;
   }
 
