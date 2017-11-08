@@ -10,13 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
+import lombok.Getter;
+import lombok.Setter;
 
 public class FilesStore implements Serializable {
+  @Setter @Getter int fileDepth;
   List<File> files;
   List<AllItemRenderableByStore<List<File>>> allItemSubscribers;
   List<EachItemRenderableByStore<File>> eachItemSubscribers;
 
   public FilesStore() {
+    this.fileDepth = 0;
     this.files = new ArrayList<>();
     this.allItemSubscribers = new ArrayList<>();
     this.eachItemSubscribers = new ArrayList<>();
@@ -43,6 +47,14 @@ public class FilesStore implements Serializable {
     files.add(file);
     Stream.of(eachItemSubscribers)
         .forEach(eachItemByStore -> eachItemByStore.renderEachItem(file));
+  }
+
+  public void increateFileDepth() {
+    fileDepth++;
+  }
+
+  public void decreaseFileDepth() {
+    fileDepth--;
   }
 
 }

@@ -73,6 +73,7 @@ public class ExplorerActivity extends PlaygroundActivity {
   }
 
   private List<File> fetchFiles() {
+    application.getFilesStore().setFileDepth(0);
     return fetchFiles(storage.getExternalStorageDirectory());
   }
 
@@ -106,7 +107,16 @@ public class ExplorerActivity extends PlaygroundActivity {
       File file = (File) uiEvent.getView().getTag();
       if (file.isDirectory()) {
         application.getFilesStore().setFiles(fetchFiles(file.getPath()));
+        application.getFilesStore().increateFileDepth();
       }
     }
+  }
+
+  @Override public void onBackPressed() {
+    if (application.getFilesStore().getFileDepth() != 0) {
+      application.getFilesStore().setFiles(fetchFiles());
+      return;
+    }
+    super.onBackPressed();
   }
 }
