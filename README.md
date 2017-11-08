@@ -11,6 +11,7 @@ Android file explorer with clean architecture
 6. Light-Weight-Stream
 7. Storage
 8. RxPermission
+9. Glide
 ```
 
 ### Focus
