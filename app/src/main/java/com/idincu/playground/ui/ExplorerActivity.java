@@ -1,13 +1,15 @@
 package com.idincu.playground.ui;
 
 import android.Manifest;
-import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import com.annimon.stream.Stream;
@@ -95,9 +97,8 @@ public class ExplorerActivity extends PlaygroundActivity {
   }
 
   private static String getMimeTypeFromFile(Context context, java.io.File file) {
-    Uri uri = Uri.fromFile(file);
-    ContentResolver cR = context.getContentResolver();
-    return cR.getType(uri);
+    return MimeTypeMap.getSingleton()
+        .getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(file.getAbsolutePath()));
   }
 
   @Override protected void subscribeUiEvent(UiEvent uiEvent) {
@@ -108,7 +109,28 @@ public class ExplorerActivity extends PlaygroundActivity {
       if (file.isDirectory()) {
         application.getFilesStore().setFiles(fetchFiles(file.getPath()));
         application.getFilesStore().increateFileDepth();
+        return;
       }
+
+      readFileIfKnownMimeType(file);
+    }
+  }
+
+  private void readFileIfKnownMimeType(File file) {
+    try {
+      Log.i(TAG, "readFileIfKnownMimeType: file mimetype " + file.getMimeType() + " / " + file.getPath());
+      Intent intent = new Intent(Intent.ACTION_VIEW);
+      Uri apkURI = FileProvider.getUriForFile(
+          this,
+          application.getPackageName() + ".fileprovider",
+          storage.getFile(file.getPath())
+      );
+      intent.setDataAndType(apkURI, file.getMimeType());
+      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      startActivity(intent);
+    } catch (Exception e) {
+      e.printStackTrace();
+      Toast.makeText(application, R.string.toast_file_open_failed, Toast.LENGTH_SHORT).show();
     }
   }
 

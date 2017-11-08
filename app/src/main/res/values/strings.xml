@@ -2,4 +2,5 @@
     <string name="app_name">Playground</string>
 
     <string name="toast_permission_denied">파일 접근 권한을 허용하지 않으시면 앱을 사용할 수 없습니다.</string>
+    <string name="toast_file_open_failed">파일을 실행하지 못했습니다.</string>
 </resources>
