@@ -121,38 +121,76 @@ public class ExplorerActivity extends PlaygroundActivity {
         .getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(file.getAbsolutePath()));
   }
 
+  private void deleteFileIfHasWritePermission(List<File> files) {
+    RxPermissions rxPermissions = new RxPermissions(this);
+    Disposable disposable = rxPermissions
+        .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        .subscribe(granted -> {
+          if (!granted) {
+            Toast.makeText(this, R.string.toast_write_permission_denied, Toast.LENGTH_SHORT).show();
+            return;
+          }
+
+          Stream.of(files).forEach(file -> {
+            if (file.isDirectory()) {
+              storage.deleteDirectory(file.getPath());
+            } else {
+              storage.deleteFile(file.getPath());
+            }
+          });
+          application.getFilesStore().setFiles(fetchFiles());
+        });
+
+    compositeDisposable.add(disposable);
+  }
+
   @Override protected void subscribeUiEvent(UiEvent uiEvent) {
     Log.i(TAG, "subscribeUiEvent: observe event " + uiEvent);
-
     if (uiEvent.getType() == UiEvent.EventType.CLICK) {
-      File file = (File) uiEvent.getView().getTag();
-
-      if (inActionMode) {
-        explorerActionModeCallback.performSelectItem((File) uiEvent.getView().getTag());
-        return;
-      }
-
-      if (file.isDirectory()) {
-        application.getFilesStore().setFiles(fetchFiles(file.getPath()));
-        application.getFilesStore().increaseFileDepth();
-        return;
-      }
-
-      readFileIfKnownMimeType(file);
+      onRecyclerViewItemClicked(uiEvent);
     } else if (uiEvent.getType() == UiEvent.EventType.LONG_CLICK) {
-      if (inActionMode) {
-        uiEvent.setType(UiEvent.EventType.CLICK);
-        application.getUiEventBus().onNext(uiEvent);
-        return;
-      }
+      onRecyclerViewItemLongClicked(uiEvent);
+    } else if (uiEvent.getType() == UiEvent.EventType.ITEM_CLICK_ACTION_MODE) {
+      onMenuItemClickedAtActionMode(uiEvent);
+    } else if (uiEvent.getType() == UiEvent.EventType.DISABLE_ACTION_MODE) {
+      onActionModeDisabled();
+    }
+  }
 
-      inActionMode = true;
-      actionMode = toolbar.startActionMode(explorerActionModeCallback);
+  private void onRecyclerViewItemClicked(UiEvent uiEvent) {
+    File file = (File) uiEvent.getView().getTag();
 
-      filesRecyclerAdapter.enableActionMode((File) uiEvent.getView().getTag());
+    if (inActionMode) {
+      explorerActionModeCallback.performSelectItem((File) uiEvent.getView().getTag());
+      return;
+    }
+
+    if (file.isDirectory()) {
+      application.getFilesStore().setFiles(fetchFiles(file.getPath()));
+      application.getFilesStore().increaseFileDepth();
+      return;
+    }
+
+    readFileIfKnownMimeType(file);
+  }
+
+  private void onRecyclerViewItemLongClicked(UiEvent uiEvent) {
+    if (inActionMode) {
       uiEvent.setType(UiEvent.EventType.CLICK);
       application.getUiEventBus().onNext(uiEvent);
-    } else if (uiEvent.getType() == UiEvent.EventType.ITEM_CLICK_ACTION_MODE) {
+      return;
+    }
+
+    inActionMode = true;
+    actionMode = toolbar.startActionMode(explorerActionModeCallback);
+
+    filesRecyclerAdapter.enableActionMode((File) uiEvent.getView().getTag());
+    uiEvent.setType(UiEvent.EventType.CLICK);
+    application.getUiEventBus().onNext(uiEvent);
+  }
+
+  private void onMenuItemClickedAtActionMode(UiEvent uiEvent) {
+    if (uiEvent.getMenuItem().getItemId() == R.id.action_share) {
       ArrayList<Uri> uris = new ArrayList<>();
 
       uris.addAll(
@@ -172,10 +210,14 @@ public class ExplorerActivity extends PlaygroundActivity {
       intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
       intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
       startActivity(intent);
-    } else if (uiEvent.getType() == UiEvent.EventType.DISABLE_ACTION_MODE) {
-      filesRecyclerAdapter.disableActionMode();
-      inActionMode = false;
+    } else if (uiEvent.getMenuItem().getItemId() == R.id.action_delete) {
+      deleteFileIfHasWritePermission(explorerActionModeCallback.getFiles());
     }
+  }
+
+  private void onActionModeDisabled() {
+    filesRecyclerAdapter.disableActionMode();
+    inActionMode = false;
   }
 
   private void readFileIfKnownMimeType(File file) {
