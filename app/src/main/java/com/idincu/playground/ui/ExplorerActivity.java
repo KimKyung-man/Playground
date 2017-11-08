@@ -57,6 +57,10 @@ public class ExplorerActivity extends PlaygroundActivity {
     explorerActionModeCallback = new ExplorerActionModeCallback(this);
   }
 
+  private void updateToolbar(String path) {
+    toolbar.setTitle(path);
+  }
+
   private void setupRecyclerView() {
     storage = new Storage(application.getApplicationContext());
 
@@ -99,6 +103,7 @@ public class ExplorerActivity extends PlaygroundActivity {
   }
 
   private List<File> fetchFiles(String path) {
+    updateToolbar(path);
     return Stream.of(storage.getFiles(path))
         .map(file -> {
           Log.i(TAG, "fetchFiles: file is " + file);
