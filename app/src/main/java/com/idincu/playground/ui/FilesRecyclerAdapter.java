@@ -8,8 +8,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.idincu.playground.R;
+import com.idincu.playground.base.PlaygroundApplication;
+import com.idincu.playground.event.UiEvent;
 import com.idincu.playground.model.File;
 import com.idincu.playground.utils.FormattingUtils;
+import com.jakewharton.rxbinding2.view.RxView;
 
 import java.util.List;
 
@@ -29,12 +32,31 @@ public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdap
 
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-    return new ViewHolder(LayoutInflater.from(parent.getContext())
-        .inflate(R.layout.item_file, parent, false));
+    View view = LayoutInflater.from(parent.getContext())
+        .inflate(R.layout.item_file, parent, false);
+
+    RxView.clicks(view)
+        .takeUntil(RxView.detaches(parent))
+        .map(aVoid -> view)
+        .subscribe(
+            v -> PlaygroundApplication.getContext()
+                .postUiEvent(new UiEvent("adapter.click", UiEvent.EventType.CLICK).attach(v))
+        );
+
+    RxView.longClicks(view)
+        .takeUntil(RxView.detaches(parent))
+        .map(aVoid -> view)
+        .subscribe(
+            v -> PlaygroundApplication.getContext()
+                .postUiEvent(new UiEvent("adapter.longclick", UiEvent.EventType.LONG_CLICK).attach(v))
+        );
+    return new ViewHolder(view);
   }
 
   @Override public void onBindViewHolder(ViewHolder holder, int position) {
     File file = files.get(position);
+    holder.itemView.setTag(file);
+
     holder.imageFile.setImageResource(
         file.isDirectory() ? R.drawable.ic_folder_black_24dp : R.drawable.ic_insert_drive_file_white_24dp
     );

@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.annimon.stream.Stream;
 import com.idincu.playground.R;
 import com.idincu.playground.base.PlaygroundActivity;
+import com.idincu.playground.event.UiEvent;
 import com.idincu.playground.model.File;
 import com.snatik.storage.Storage;
 import com.tbruyelle.rxpermissions2.RxPermissions;
@@ -21,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 
 import butterknife.BindView;
+import io.reactivex.disposables.Disposable;
 
 public class ExplorerActivity extends PlaygroundActivity {
   private static final String TAG = ExplorerActivity.class.getSimpleName();
@@ -28,11 +30,14 @@ public class ExplorerActivity extends PlaygroundActivity {
   @BindView(R.id.recycler_files) RecyclerView recyclerFiles;
 
   FilesRecyclerAdapter filesRecyclerAdapter;
+  Storage storage;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_explorer);
+
+    storage = new Storage(application.getApplicationContext());
 
     filesRecyclerAdapter = new FilesRecyclerAdapter();
     recyclerFiles.setLayoutManager(new LinearLayoutManager(this));
@@ -53,7 +58,7 @@ public class ExplorerActivity extends PlaygroundActivity {
 
   private void fetchFilesIfCanAccessStorage() {
     RxPermissions rxPermissions = new RxPermissions(this);
-    rxPermissions
+    Disposable disposable = rxPermissions
         .request(Manifest.permission.READ_EXTERNAL_STORAGE)
         .subscribe(granted -> {
           if (!granted) {
@@ -63,10 +68,11 @@ public class ExplorerActivity extends PlaygroundActivity {
 
           application.getFilesStore().setFiles(fetchFiles());
         });
+
+    compositeDisposable.add(disposable);
   }
 
   private List<File> fetchFiles() {
-    Storage storage = new Storage(application.getApplicationContext());
     Log.i(TAG, "fetchFiles: " + storage.getExternalStorageDirectory() + " / " + storage.getFiles(storage.getExternalStorageDirectory()));
     List<File> files = Stream.of(storage.getFiles(storage.getExternalStorageDirectory()))
         .map(file -> {
@@ -76,6 +82,7 @@ public class ExplorerActivity extends PlaygroundActivity {
               .editDate(new Date(file.lastModified()))
               .mimeType(getMimeTypeFromFile(this, file))
               .size(file.getUsableSpace())
+              .isDirectory(file.isDirectory())
               .build();
         })
         .toList();
@@ -90,4 +97,7 @@ public class ExplorerActivity extends PlaygroundActivity {
     return cR.getType(uri);
   }
 
+  @Override protected void subscribeUiEvent(UiEvent uiEvent) {
+    Log.i(TAG, "subscribeUiEvent: observe event " + uiEvent);
+  }
 }
