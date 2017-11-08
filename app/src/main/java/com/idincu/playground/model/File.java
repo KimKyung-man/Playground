@@ -22,6 +22,7 @@ public class File implements Parcelable {
   String mimeType;
   long size;
   Date editDate;
+  boolean isDirectory;
 
   @Override public int describeContents() {
     return 0;
@@ -32,6 +33,7 @@ public class File implements Parcelable {
     dest.writeString(this.mimeType);
     dest.writeLong(this.size);
     dest.writeLong(this.editDate != null ? this.editDate.getTime() : -1);
+    dest.writeByte(this.isDirectory ? (byte) 1 : (byte) 0);
   }
 
   protected File(Parcel in) {
@@ -40,6 +42,7 @@ public class File implements Parcelable {
     this.size = in.readLong();
     long tmpEditDate = in.readLong();
     this.editDate = tmpEditDate == -1 ? null : new Date(tmpEditDate);
+    this.isDirectory = in.readByte() != 0;
   }
 
   public static final Creator<File> CREATOR = new Creator<File>() {

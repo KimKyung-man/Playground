@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.idincu.playground.R;
 import com.idincu.playground.model.File;
+import com.idincu.playground.utils.FormattingUtils;
 
 import java.util.List;
 
@@ -34,10 +35,14 @@ public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdap
 
   @Override public void onBindViewHolder(ViewHolder holder, int position) {
     File file = files.get(position);
+    holder.imageFile.setImageResource(
+        file.isDirectory() ? R.drawable.ic_folder_black_24dp : R.drawable.ic_insert_drive_file_white_24dp
+    );
+    holder.textSize.setText(FormattingUtils.convertToByteString(file.getSize()));
+    holder.textSize.setVisibility(file.isDirectory() ? View.INVISIBLE : View.VISIBLE);
 
     holder.textTitle.setText(file.getName());
-    holder.textEditDate.setText(file.getEditDate().toString()); // TODO formatting
-    holder.textSize.setText(String.valueOf(file.getSize())); // TODO formatting
+    holder.textEditDate.setText(FormattingUtils.convertToDateString(file.getEditDate())); // TODO formatting
   }
 
   @Override public int getItemCount() {
