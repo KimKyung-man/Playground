@@ -58,6 +58,9 @@ dependencies {
     compile 'com.snatik:storage:2.1.0'
     // permission
     compile 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.4@aar'
+    // image
+    compile 'com.github.bumptech.glide:glide:4.3.1'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.3.1'
 
     // test
     testImplementation 'junit:junit:4.12'

@@ -19,7 +19,6 @@
         android:layout_height="@dimen/icon_xlarge"
         android:layout_margin="@dimen/margin_medium"
         android:src="@drawable/ic_folder_black_24dp"
-        android:tint="@color/colorPrimary"
         app:layout_constraintStart_toEndOf="@id/check_selected"
         app:layout_constraintTop_toTopOf="parent" />
 

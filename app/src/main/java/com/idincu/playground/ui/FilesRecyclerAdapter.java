@@ -1,5 +1,6 @@
 package com.idincu.playground.ui;
 
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,10 +10,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.annimon.stream.Stream;
+import com.bumptech.glide.Glide;
 import com.idincu.playground.R;
 import com.idincu.playground.base.PlaygroundApplication;
 import com.idincu.playground.event.UiEvent;
 import com.idincu.playground.model.File;
+import com.idincu.playground.utils.FileUtils;
 import com.idincu.playground.utils.FormattingUtils;
 import com.jakewharton.rxbinding2.view.RxView;
 
@@ -79,14 +82,25 @@ public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdap
     holder.checkSelected.setVisibility(isActionMode ? View.VISIBLE : View.GONE);
     holder.checkSelected.setChecked(file.isSelected());
 
-    holder.imageFile.setImageResource(
-        file.isDirectory() ? R.drawable.ic_folder_black_24dp : R.drawable.ic_insert_drive_file_white_24dp
-    );
+    if (FileUtils.isImageFile(file.getMimeType())) {
+      holder.imageFile.setColorFilter(null);
+      Glide.with(holder.itemView.getContext())
+          .load(new java.io.File(file.getPath()))
+          .thumbnail(0.2f)
+          .into(holder.imageFile);
+    } else {
+      holder.imageFile.setColorFilter(
+          ContextCompat.getColor(holder.imageFile.getContext(), R.color.colorAccent)
+      );
+      holder.imageFile.setImageResource(
+          file.isDirectory() ? R.drawable.ic_folder_black_24dp : R.drawable.ic_insert_drive_file_white_24dp
+      );
+    }
     holder.textSize.setText(file.getReadableSize());
     holder.textSize.setVisibility(file.isDirectory() ? View.INVISIBLE : View.VISIBLE);
 
     holder.textTitle.setText(file.getName());
-    holder.textEditDate.setText(FormattingUtils.convertToDateString(file.getEditDate())); // TODO formatting
+    holder.textEditDate.setText(FormattingUtils.convertToDateString(file.getEditDate()));
   }
 
   @Override public int getItemCount() {

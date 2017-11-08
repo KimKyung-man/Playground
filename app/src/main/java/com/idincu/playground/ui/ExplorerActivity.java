@@ -1,7 +1,6 @@
 package com.idincu.playground.ui;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,7 +10,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.ActionMode;
-import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import com.annimon.stream.Stream;
@@ -19,6 +17,7 @@ import com.idincu.playground.R;
 import com.idincu.playground.base.PlaygroundActivity;
 import com.idincu.playground.event.UiEvent;
 import com.idincu.playground.model.File;
+import com.idincu.playground.utils.FileUtils;
 import com.snatik.storage.Storage;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
@@ -106,7 +105,7 @@ public class ExplorerActivity extends PlaygroundActivity {
           return File.builder()
               .name(file.getName())
               .editDate(new Date(file.lastModified()))
-              .mimeType(getMimeTypeFromFile(this, file))
+              .mimeType(FileUtils.getMimeTypeFromFile(file))
               .size(file.getUsableSpace())
               .readableSize(storage.getReadableSize(file))
               .isDirectory(file.isDirectory())
@@ -114,11 +113,6 @@ public class ExplorerActivity extends PlaygroundActivity {
               .build();
         })
         .toList();
-  }
-
-  private static String getMimeTypeFromFile(Context context, java.io.File file) {
-    return MimeTypeMap.getSingleton()
-        .getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(file.getAbsolutePath()));
   }
 
   private void deleteFileIfHasWritePermission(List<File> files) {
