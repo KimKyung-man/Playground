@@ -23,6 +23,7 @@ public class File implements Parcelable {
   long size;
   Date editDate;
   boolean isDirectory;
+  String path;
 
   @Override public int describeContents() {
     return 0;
@@ -34,6 +35,7 @@ public class File implements Parcelable {
     dest.writeLong(this.size);
     dest.writeLong(this.editDate != null ? this.editDate.getTime() : -1);
     dest.writeByte(this.isDirectory ? (byte) 1 : (byte) 0);
+    dest.writeString(this.path);
   }
 
   protected File(Parcel in) {
@@ -43,6 +45,7 @@ public class File implements Parcelable {
     long tmpEditDate = in.readLong();
     this.editDate = tmpEditDate == -1 ? null : new Date(tmpEditDate);
     this.isDirectory = in.readByte() != 0;
+    this.path = in.readString();
   }
 
   public static final Creator<File> CREATOR = new Creator<File>() {

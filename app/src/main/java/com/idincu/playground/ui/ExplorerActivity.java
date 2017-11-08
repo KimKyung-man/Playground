@@ -73,8 +73,11 @@ public class ExplorerActivity extends PlaygroundActivity {
   }
 
   private List<File> fetchFiles() {
-    Log.i(TAG, "fetchFiles: " + storage.getExternalStorageDirectory() + " / " + storage.getFiles(storage.getExternalStorageDirectory()));
-    List<File> files = Stream.of(storage.getFiles(storage.getExternalStorageDirectory()))
+    return fetchFiles(storage.getExternalStorageDirectory());
+  }
+
+  private List<File> fetchFiles(String path) {
+    return Stream.of(storage.getFiles(path))
         .map(file -> {
           Log.i(TAG, "fetchFiles: file is " + file);
           return File.builder()
@@ -83,12 +86,10 @@ public class ExplorerActivity extends PlaygroundActivity {
               .mimeType(getMimeTypeFromFile(this, file))
               .size(file.getUsableSpace())
               .isDirectory(file.isDirectory())
+              .path(file.getAbsolutePath())
               .build();
         })
         .toList();
-    Log.i(TAG, "fetchFiles: files = " + files);
-
-    return files;
   }
 
   private static String getMimeTypeFromFile(Context context, java.io.File file) {
@@ -99,5 +100,12 @@ public class ExplorerActivity extends PlaygroundActivity {
 
   @Override protected void subscribeUiEvent(UiEvent uiEvent) {
     Log.i(TAG, "subscribeUiEvent: observe event " + uiEvent);
+
+    if (uiEvent.getType() == UiEvent.EventType.CLICK) {
+      File file = (File) uiEvent.getView().getTag();
+      if (file.isDirectory()) {
+        application.getFilesStore().setFiles(fetchFiles(file.getPath()));
+      }
+    }
   }
 }
