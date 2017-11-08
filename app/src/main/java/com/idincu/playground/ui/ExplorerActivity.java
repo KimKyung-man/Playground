@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -42,6 +43,7 @@ public class ExplorerActivity extends PlaygroundActivity {
 
   // Ui State
   boolean inActionMode;
+  String currentPath;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -57,8 +59,9 @@ public class ExplorerActivity extends PlaygroundActivity {
     explorerActionModeCallback = new ExplorerActionModeCallback(this);
   }
 
-  private void updateToolbar(String path) {
-    toolbar.setTitle(path);
+  private void updatePath(String path) {
+    currentPath = path;
+    toolbar.setTitle(currentPath);
   }
 
   private void setupRecyclerView() {
@@ -78,10 +81,10 @@ public class ExplorerActivity extends PlaygroundActivity {
       filesRecyclerAdapter.notifyItemInserted(filesRecyclerAdapter.getFiles().size() - 1);
     });
 
-    fetchFilesIfCanAccessStorage();
+    fetchFilesIfCanAccessToStorage();
   }
 
-  private void fetchFilesIfCanAccessStorage() {
+  private void fetchFilesIfCanAccessToStorage() {
     RxPermissions rxPermissions = new RxPermissions(this);
     Disposable disposable = rxPermissions
         .request(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -103,7 +106,7 @@ public class ExplorerActivity extends PlaygroundActivity {
   }
 
   private List<File> fetchFiles(String path) {
-    updateToolbar(path);
+    updatePath(path);
     return Stream.of(storage.getFiles(path))
         .map(file -> {
           Log.i(TAG, "fetchFiles: file is " + file);
@@ -137,7 +140,12 @@ public class ExplorerActivity extends PlaygroundActivity {
               storage.deleteFile(file.getPath());
             }
           });
-          application.getFilesStore().setFiles(fetchFiles());
+
+          application.getFilesStore().setFiles(fetchFiles(storage.getFile(currentPath).getAbsolutePath()));
+          actionMode.finish();
+
+          Snackbar.make(findViewById(R.id.container), R.string.snack_file_deleted, Snackbar.LENGTH_SHORT)
+              .show();
         });
 
     compositeDisposable.add(disposable);
@@ -190,28 +198,33 @@ public class ExplorerActivity extends PlaygroundActivity {
 
   private void onMenuItemClickedAtActionMode(UiEvent uiEvent) {
     if (uiEvent.getMenuItem().getItemId() == R.id.action_share) {
-      ArrayList<Uri> uris = new ArrayList<>();
-
-      uris.addAll(
-          Stream.of(explorerActionModeCallback.getFiles())
-              .map(file -> FileProvider.getUriForFile(
-                  this,
-                  application.getPackageName() + ".fileprovider",
-                  storage.getFile(file.getPath())
-                  )
-              )
-              .toList()
-      );
-
-      Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
-      intent.putExtra(Intent.EXTRA_SUBJECT, "files");
-      intent.setType("*/*");
-      intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-      startActivity(intent);
+      shareFile();
     } else if (uiEvent.getMenuItem().getItemId() == R.id.action_delete) {
       deleteFileIfHasWritePermission(explorerActionModeCallback.getFiles());
     }
+  }
+
+  private void shareFile() {
+    ArrayList<Uri> uris = new ArrayList<>();
+
+    uris.addAll(
+        Stream.of(explorerActionModeCallback.getFiles())
+            .map(file -> FileProvider.getUriForFile(
+                this,
+                application.getPackageName() + ".fileprovider",
+                storage.getFile(file.getPath())
+                )
+            )
+            .toList()
+    );
+
+    Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+    intent.putExtra(Intent.EXTRA_SUBJECT, "files");
+    intent.setType("*/*");
+    intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    startActivity(intent);
+    actionMode.finish();
   }
 
   private void onActionModeDisabled() {
@@ -243,7 +256,8 @@ public class ExplorerActivity extends PlaygroundActivity {
       return;
     }
     if (application.getFilesStore().getFileDepth() != 0) {
-      application.getFilesStore().setFiles(fetchFiles());
+      application.getFilesStore().setFiles(fetchFiles(storage.getFile(currentPath).getParent()));
+      application.getFilesStore().decreaseFileDepth();
       return;
     }
     super.onBackPressed();
