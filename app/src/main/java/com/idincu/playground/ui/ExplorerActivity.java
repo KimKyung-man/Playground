@@ -8,7 +8,9 @@ import android.os.Bundle;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ActionMode;
 import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
@@ -20,6 +22,7 @@ import com.idincu.playground.model.File;
 import com.snatik.storage.Storage;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -29,16 +32,33 @@ import io.reactivex.disposables.Disposable;
 public class ExplorerActivity extends PlaygroundActivity {
   private static final String TAG = ExplorerActivity.class.getSimpleName();
 
+  @BindView(R.id.toolbar) Toolbar toolbar;
   @BindView(R.id.recycler_files) RecyclerView recyclerFiles;
+
+  ExplorerActionModeCallback explorerActionModeCallback;
+  ActionMode actionMode;
 
   FilesRecyclerAdapter filesRecyclerAdapter;
   Storage storage;
+
+  // Ui State
+  boolean inActionMode;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_explorer);
 
+    setupToolbar();
+    setupRecyclerView();
+  }
+
+  private void setupToolbar() {
+    inActionMode = false;
+    explorerActionModeCallback = new ExplorerActionModeCallback(this);
+  }
+
+  private void setupRecyclerView() {
     storage = new Storage(application.getApplicationContext());
 
     filesRecyclerAdapter = new FilesRecyclerAdapter();
@@ -106,13 +126,55 @@ public class ExplorerActivity extends PlaygroundActivity {
 
     if (uiEvent.getType() == UiEvent.EventType.CLICK) {
       File file = (File) uiEvent.getView().getTag();
+
+      if (inActionMode) {
+        explorerActionModeCallback.performSelectItem((File) uiEvent.getView().getTag());
+        return;
+      }
+
       if (file.isDirectory()) {
         application.getFilesStore().setFiles(fetchFiles(file.getPath()));
-        application.getFilesStore().increateFileDepth();
+        application.getFilesStore().increaseFileDepth();
         return;
       }
 
       readFileIfKnownMimeType(file);
+    } else if (uiEvent.getType() == UiEvent.EventType.LONG_CLICK) {
+      if (inActionMode) {
+        uiEvent.setType(UiEvent.EventType.CLICK);
+        application.getUiEventBus().onNext(uiEvent);
+        return;
+      }
+
+      inActionMode = true;
+      actionMode = toolbar.startActionMode(explorerActionModeCallback);
+
+      filesRecyclerAdapter.enableActionMode((File) uiEvent.getView().getTag());
+      uiEvent.setType(UiEvent.EventType.CLICK);
+      application.getUiEventBus().onNext(uiEvent);
+    } else if (uiEvent.getType() == UiEvent.EventType.ITEM_CLICK_ACTION_MODE) {
+      ArrayList<Uri> uris = new ArrayList<>();
+
+      uris.addAll(
+          Stream.of(explorerActionModeCallback.getFiles())
+              .map(file -> FileProvider.getUriForFile(
+                  this,
+                  application.getPackageName() + ".fileprovider",
+                  storage.getFile(file.getPath())
+                  )
+              )
+              .toList()
+      );
+
+      Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+      intent.putExtra(Intent.EXTRA_SUBJECT, "files");
+      intent.setType("*/*");
+      intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+      intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      startActivity(intent);
+    } else if (uiEvent.getType() == UiEvent.EventType.DISABLE_ACTION_MODE) {
+      filesRecyclerAdapter.disableActionMode();
+      inActionMode = false;
     }
   }
 
@@ -135,6 +197,10 @@ public class ExplorerActivity extends PlaygroundActivity {
   }
 
   @Override public void onBackPressed() {
+    if (inActionMode) {
+      actionMode.finish();
+      return;
+    }
     if (application.getFilesStore().getFileDepth() != 0) {
       application.getFilesStore().setFiles(fetchFiles());
       return;

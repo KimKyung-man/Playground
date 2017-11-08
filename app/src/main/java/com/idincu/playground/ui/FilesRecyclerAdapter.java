@@ -4,9 +4,11 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.annimon.stream.Stream;
 import com.idincu.playground.R;
 import com.idincu.playground.base.PlaygroundApplication;
 import com.idincu.playground.event.UiEvent;
@@ -29,6 +31,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdapter.ViewHolder> {
   @Getter @Setter List<File> files;
+  boolean isActionMode;
 
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -37,7 +40,16 @@ public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdap
 
     RxView.clicks(view)
         .takeUntil(RxView.detaches(parent))
-        .map(aVoid -> view)
+        .map(aVoid -> {
+          if (isActionMode) {
+            File file = (File) view.getTag();
+            CheckBox checkSelected = view.findViewById(R.id.check_selected);
+
+            file.setSelected(!file.isSelected());
+            checkSelected.setChecked(file.isSelected());
+          }
+          return view;
+        })
         .subscribe(
             v -> PlaygroundApplication.getContext()
                 .postUiEvent(new UiEvent("adapter.click", UiEvent.EventType.CLICK).attach(v))
@@ -45,7 +57,14 @@ public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdap
 
     RxView.longClicks(view)
         .takeUntil(RxView.detaches(parent))
-        .map(aVoid -> view)
+        .map(aVoid -> {
+          File file = (File) view.getTag();
+          CheckBox checkSelected = view.findViewById(R.id.check_selected);
+
+          file.setSelected(!file.isSelected());
+          checkSelected.setChecked(file.isSelected());
+          return view;
+        })
         .subscribe(
             v -> PlaygroundApplication.getContext()
                 .postUiEvent(new UiEvent("adapter.longclick", UiEvent.EventType.LONG_CLICK).attach(v))
@@ -56,6 +75,9 @@ public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdap
   @Override public void onBindViewHolder(ViewHolder holder, int position) {
     File file = files.get(position);
     holder.itemView.setTag(file);
+
+    holder.checkSelected.setVisibility(isActionMode ? View.VISIBLE : View.GONE);
+    holder.checkSelected.setChecked(file.isSelected());
 
     holder.imageFile.setImageResource(
         file.isDirectory() ? R.drawable.ic_folder_black_24dp : R.drawable.ic_insert_drive_file_white_24dp
@@ -71,7 +93,23 @@ public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdap
     return files == null ? 0 : files.size();
   }
 
+  public void enableActionMode(File firstFile) {
+    isActionMode = true;
+
+    Stream.of(files).forEach(file -> file.setSelected(false));
+    firstFile.setSelected(true);
+    notifyDataSetChanged();
+  }
+
+  public void disableActionMode() {
+    isActionMode = false;
+
+    Stream.of(files).forEach(file -> file.setSelected(false));
+    notifyDataSetChanged();
+  }
+
   static class ViewHolder extends RecyclerView.ViewHolder {
+    @BindView(R.id.check_selected) CheckBox checkSelected;
     @BindView(R.id.image_file) ImageView imageFile;
     @BindView(R.id.text_title) TextView textTitle;
     @BindView(R.id.text_size) TextView textSize;

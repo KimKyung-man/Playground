@@ -15,7 +15,7 @@ public class FormattingUtils {
 
   public static String convertToDateString(Date date) {
     @SuppressLint("SimpleDateFormat")
-    DateFormat df = new SimpleDateFormat("yyyy년 MM월 dd일 HH:mm:ss");
+    DateFormat df = new SimpleDateFormat("yyyy년 MM월 dd일 HH:mm");
     return df.format(date);
   }
 }

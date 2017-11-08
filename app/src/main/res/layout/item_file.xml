@@ -4,15 +4,23 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <CheckBox
+        android:id="@+id/check_selected"
+        android:layout_width="@dimen/icon_medium"
+        android:layout_height="@dimen/icon_medium"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/image_file"
         android:layout_width="@dimen/icon_xlarge"
         android:layout_height="@dimen/icon_xlarge"
-        android:layout_marginLeft="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_margin="@dimen/margin_medium"
         android:src="@drawable/ic_folder_black_24dp"
         android:tint="@color/colorPrimary"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/check_selected"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView

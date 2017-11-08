@@ -49,7 +49,7 @@ public class FilesStore implements Serializable {
         .forEach(eachItemByStore -> eachItemByStore.renderEachItem(file));
   }
 
-  public void increateFileDepth() {
+  public void increaseFileDepth() {
     fileDepth++;
   }
 
