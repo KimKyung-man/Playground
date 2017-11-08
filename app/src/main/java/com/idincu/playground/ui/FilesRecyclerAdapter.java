@@ -33,8 +33,8 @@ import lombok.Setter;
 
 @NoArgsConstructor
 public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdapter.ViewHolder> {
-  @Getter @Setter List<File> files;
-  boolean isActionMode;
+  @Getter @Setter private List<File> files;
+  private boolean isActionMode;
 
   @Override
   public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

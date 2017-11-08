@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
@@ -59,7 +60,7 @@ public class ExplorerActivity extends PlaygroundActivity {
     explorerActionModeCallback = new ExplorerActionModeCallback(this);
   }
 
-  private void updatePath(String path) {
+  private void updatePath(@NonNull String path) {
     currentPath = path;
     toolbar.setTitle(currentPath);
   }
@@ -105,7 +106,7 @@ public class ExplorerActivity extends PlaygroundActivity {
     return fetchFiles(storage.getExternalStorageDirectory());
   }
 
-  private List<File> fetchFiles(String path) {
+  private List<File> fetchFiles(@NonNull String path) {
     updatePath(path);
     return Stream.of(storage.getFiles(path))
         .map(file -> {
@@ -123,7 +124,7 @@ public class ExplorerActivity extends PlaygroundActivity {
         .toList();
   }
 
-  private void deleteFileIfHasWritePermission(List<File> files) {
+  private void deleteFileIfHasWritePermission(@NonNull List<File> files) {
     RxPermissions rxPermissions = new RxPermissions(this);
     Disposable disposable = rxPermissions
         .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -151,7 +152,7 @@ public class ExplorerActivity extends PlaygroundActivity {
     compositeDisposable.add(disposable);
   }
 
-  @Override protected void subscribeUiEvent(UiEvent uiEvent) {
+  @Override protected void subscribeUiEvent(@NonNull UiEvent uiEvent) {
     Log.i(TAG, "subscribeUiEvent: observe event " + uiEvent);
     if (uiEvent.getType() == UiEvent.EventType.CLICK) {
       onRecyclerViewItemClicked(uiEvent);
@@ -164,7 +165,7 @@ public class ExplorerActivity extends PlaygroundActivity {
     }
   }
 
-  private void onRecyclerViewItemClicked(UiEvent uiEvent) {
+  private void onRecyclerViewItemClicked(@NonNull UiEvent uiEvent) {
     File file = (File) uiEvent.getView().getTag();
 
     if (inActionMode) {
@@ -181,7 +182,7 @@ public class ExplorerActivity extends PlaygroundActivity {
     readFileIfKnownMimeType(file);
   }
 
-  private void onRecyclerViewItemLongClicked(UiEvent uiEvent) {
+  private void onRecyclerViewItemLongClicked(@NonNull UiEvent uiEvent) {
     if (inActionMode) {
       uiEvent.setType(UiEvent.EventType.CLICK);
       application.getUiEventBus().onNext(uiEvent);
@@ -196,7 +197,7 @@ public class ExplorerActivity extends PlaygroundActivity {
     application.getUiEventBus().onNext(uiEvent);
   }
 
-  private void onMenuItemClickedAtActionMode(UiEvent uiEvent) {
+  private void onMenuItemClickedAtActionMode(@NonNull UiEvent uiEvent) {
     if (uiEvent.getMenuItem().getItemId() == R.id.action_share) {
       shareFile();
     } else if (uiEvent.getMenuItem().getItemId() == R.id.action_delete) {
@@ -232,7 +233,7 @@ public class ExplorerActivity extends PlaygroundActivity {
     inActionMode = false;
   }
 
-  private void readFileIfKnownMimeType(File file) {
+  private void readFileIfKnownMimeType(@NonNull File file) {
     try {
       Log.i(TAG, "readFileIfKnownMimeType: file mimetype " + file.getMimeType() + " / " + file.getPath());
       Intent intent = new Intent(Intent.ACTION_VIEW);

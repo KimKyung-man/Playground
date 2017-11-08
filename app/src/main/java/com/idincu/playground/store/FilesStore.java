@@ -14,10 +14,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 public class FilesStore implements Serializable {
-  @Setter @Getter int fileDepth;
-  List<File> files;
-  List<AllItemRenderableByStore<List<File>>> allItemSubscribers;
-  List<EachItemRenderableByStore<File>> eachItemSubscribers;
+  @Setter @Getter private int fileDepth;
+  private List<File> files;
+  private List<AllItemRenderableByStore<List<File>>> allItemSubscribers;
+  private List<EachItemRenderableByStore<File>> eachItemSubscribers;
 
   public FilesStore() {
     this.fileDepth = 0;

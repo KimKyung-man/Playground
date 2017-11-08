@@ -18,14 +18,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class File implements Parcelable {
-  String name;
-  String mimeType;
-  long size;
-  String readableSize;
-  Date editDate;
-  boolean isDirectory;
-  String path;
-  boolean isSelected;
+  private String name;
+  private String mimeType;
+  private long size;
+  private String readableSize;
+  private Date editDate;
+  private boolean isDirectory;
+  private String path;
+  private boolean isSelected;
 
   @Override public int describeContents() {
     return 0;
