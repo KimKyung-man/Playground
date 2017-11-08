@@ -60,7 +60,7 @@ public class FilesRecyclerAdapter extends RecyclerView.Adapter<FilesRecyclerAdap
     holder.imageFile.setImageResource(
         file.isDirectory() ? R.drawable.ic_folder_black_24dp : R.drawable.ic_insert_drive_file_white_24dp
     );
-    holder.textSize.setText(FormattingUtils.convertToByteString(file.getSize()));
+    holder.textSize.setText(file.getReadableSize());
     holder.textSize.setVisibility(file.isDirectory() ? View.INVISIBLE : View.VISIBLE);
 
     holder.textTitle.setText(file.getName());

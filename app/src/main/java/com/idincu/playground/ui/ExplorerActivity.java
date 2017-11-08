@@ -85,6 +85,7 @@ public class ExplorerActivity extends PlaygroundActivity {
               .editDate(new Date(file.lastModified()))
               .mimeType(getMimeTypeFromFile(this, file))
               .size(file.getUsableSpace())
+              .readableSize(storage.getReadableSize(file))
               .isDirectory(file.isDirectory())
               .path(file.getAbsolutePath())
               .build();

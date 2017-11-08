@@ -21,6 +21,7 @@ public class File implements Parcelable {
   String name;
   String mimeType;
   long size;
+  String readableSize;
   Date editDate;
   boolean isDirectory;
   String path;
@@ -33,6 +34,7 @@ public class File implements Parcelable {
     dest.writeString(this.name);
     dest.writeString(this.mimeType);
     dest.writeLong(this.size);
+    dest.writeString(this.readableSize);
     dest.writeLong(this.editDate != null ? this.editDate.getTime() : -1);
     dest.writeByte(this.isDirectory ? (byte) 1 : (byte) 0);
     dest.writeString(this.path);
@@ -42,6 +44,7 @@ public class File implements Parcelable {
     this.name = in.readString();
     this.mimeType = in.readString();
     this.size = in.readLong();
+    this.readableSize = in.readString();
     long tmpEditDate = in.readLong();
     this.editDate = tmpEditDate == -1 ? null : new Date(tmpEditDate);
     this.isDirectory = in.readByte() != 0;
