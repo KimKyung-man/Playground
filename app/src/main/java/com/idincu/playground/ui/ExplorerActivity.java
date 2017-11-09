@@ -16,6 +16,8 @@ import android.widget.Toast;
 
 import com.annimon.stream.Stream;
 import com.idincu.playground.R;
+import com.idincu.playground.base.AllItemRenderableByStore;
+import com.idincu.playground.base.EachItemRenderableByStore;
 import com.idincu.playground.base.PlaygroundActivity;
 import com.idincu.playground.event.UiEvent;
 import com.idincu.playground.model.File;
@@ -30,7 +32,8 @@ import java.util.List;
 import butterknife.BindView;
 import io.reactivex.disposables.Disposable;
 
-public class ExplorerActivity extends PlaygroundActivity {
+public class ExplorerActivity extends PlaygroundActivity
+    implements AllItemRenderableByStore<List<File>>, EachItemRenderableByStore<File> {
   private static final String TAG = ExplorerActivity.class.getSimpleName();
 
   @BindView(R.id.toolbar) Toolbar toolbar;
@@ -45,6 +48,17 @@ public class ExplorerActivity extends PlaygroundActivity {
   // Ui State
   boolean inActionMode;
   String currentPath;
+
+  @Override public void renderEachItem(File file) {
+    filesRecyclerAdapter.getFiles().add(file);
+    filesRecyclerAdapter.notifyItemInserted(filesRecyclerAdapter.getFiles().size() - 1);
+  }
+
+  @Override public void render(List<File> files) {
+    Log.i(TAG, "render: files size = " + files.size());
+    filesRecyclerAdapter.setFiles(files);
+    filesRecyclerAdapter.notifyDataSetChanged();
+  }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -72,15 +86,8 @@ public class ExplorerActivity extends PlaygroundActivity {
     recyclerFiles.setLayoutManager(new LinearLayoutManager(this));
     recyclerFiles.setAdapter(filesRecyclerAdapter);
 
-    application.getFilesStore().bindFilesRenderable(files -> {
-      Log.i(TAG, "render: files size = " + files.size());
-      filesRecyclerAdapter.setFiles(files);
-      filesRecyclerAdapter.notifyDataSetChanged();
-    });
-    application.getFilesStore().bindFileRenderable(file -> {
-      filesRecyclerAdapter.getFiles().add(file);
-      filesRecyclerAdapter.notifyItemInserted(filesRecyclerAdapter.getFiles().size() - 1);
-    });
+    application.getFilesStore().bindFilesRenderable(this);
+    application.getFilesStore().bindFileRenderable(this);
 
     fetchFilesIfCanAccessToStorage();
   }
