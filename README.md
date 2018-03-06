@@ -2,7 +2,8 @@
 Android file explorer with clean architecture
 
 ### About
-간단하게 구성된 안드로이드 File navigator 샘플 코드 프로젝트
+
+단일 스토어와 RxAndroid 2 버전으로 설계된 안드로이드 File navigator 샘플 코드 프로젝트
 
 ### Dependencies
 ```
