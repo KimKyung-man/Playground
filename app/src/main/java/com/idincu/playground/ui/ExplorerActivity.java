@@ -46,8 +46,8 @@ public class ExplorerActivity extends PlaygroundActivity
   Storage storage;
 
   // Ui State
-  boolean inActionMode;
-  String currentPath;
+  private boolean inActionMode;
+  private String currentPath;
 
   @Override public void renderEachItem(File file) {
     filesRecyclerAdapter.getFiles().add(file);
